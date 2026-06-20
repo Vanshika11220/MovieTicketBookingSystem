@@ -1,0 +1,1123 @@
+{
+  "info": {
+    "_postman_id": "b4ed1d2c-0f1a-4f18-9d66-0f45a43d1010",
+    "name": "Movie Ticket Booking System",
+    "description": "Spring Boot Movie Ticket Booking System APIs. Includes all APIs and a runnable whole booking flow.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const future = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);",
+          "pm.collectionVariables.set('futureShowTime', future.toISOString().slice(0, 19));",
+          "pm.collectionVariables.set('uniqueSuffix', Date.now().toString());"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "adminUserId",
+      "value": "1"
+    },
+    {
+      "key": "customerUserId",
+      "value": "2"
+    },
+    {
+      "key": "secondCustomerUserId",
+      "value": "3"
+    },
+    {
+      "key": "seedShowId",
+      "value": "1"
+    },
+    {
+      "key": "seedSeatId1",
+      "value": "1"
+    },
+    {
+      "key": "seedSeatId2",
+      "value": "2"
+    },
+    {
+      "key": "cityId",
+      "value": ""
+    },
+    {
+      "key": "theaterId",
+      "value": ""
+    },
+    {
+      "key": "movieId",
+      "value": ""
+    },
+    {
+      "key": "showId",
+      "value": "1"
+    },
+    {
+      "key": "seatId1",
+      "value": "1"
+    },
+    {
+      "key": "seatId2",
+      "value": "2"
+    },
+    {
+      "key": "holdId1",
+      "value": ""
+    },
+    {
+      "key": "holdId2",
+      "value": ""
+    },
+    {
+      "key": "bookingId",
+      "value": ""
+    },
+    {
+      "key": "futureShowTime",
+      "value": ""
+    },
+    {
+      "key": "uniqueSuffix",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Whole Flow APIs - Run In Order",
+      "description": "Complete admin setup and customer booking flow. Run this folder in order after starting the Spring Boot app.",
+      "item": [
+        {
+          "name": "1. Admin - Create City",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Flow City {{uniqueSuffix}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/cities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "cities"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('created city', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('cityId', json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Admin - Create Theater",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Flow Theater\",\n  \"address\": \"Main Road\",\n  \"cityId\": {{cityId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/theaters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "theaters"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('created theater', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('theaterId', json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. Admin - Create Seat Layout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theaterId\": {{theaterId}},\n  \"seats\": [\n    {\"rowLabel\": \"A\", \"seatNumber\": 1, \"seatType\": \"REGULAR\"},\n    {\"rowLabel\": \"A\", \"seatNumber\": 2, \"seatType\": \"REGULAR\"},\n    {\"rowLabel\": \"B\", \"seatNumber\": 1, \"seatType\": \"PREMIUM\"},\n    {\"rowLabel\": \"B\", \"seatNumber\": 2, \"seatType\": \"PREMIUM\"}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/seat-layouts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "seat-layouts"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('created seats', () => pm.response.to.have.status(201));",
+                  "const ids = pm.response.json();",
+                  "pm.collectionVariables.set('seatId1', ids[0]);",
+                  "pm.collectionVariables.set('seatId2', ids[1]);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. Admin - Create Movie",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Flow Movie\",\n  \"durationMinutes\": 128,\n  \"language\": \"English\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/movies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "movies"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('created movie', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('movieId', json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5. Admin - Create Show",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movieId\": {{movieId}},\n  \"theaterId\": {{theaterId}},\n  \"startsAt\": \"{{futureShowTime}}\",\n  \"basePrice\": 250.00,\n  \"premiumSurcharge\": 100.00,\n  \"weekendMultiplier\": 1.20,\n  \"holdMinutes\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/shows",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "shows"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('created show', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('showId', json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6. Admin - Create Discount Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"FLOW10{{uniqueSuffix}}\",\n  \"percentage\": 10.00,\n  \"validUntil\": \"2027-12-31\",\n  \"active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/discounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "discounts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "7. Admin - Create Refund Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Flow full refund until 2 hours before show\",\n  \"cutoffMinutesBeforeShow\": 120,\n  \"refundPercentage\": 100.00,\n  \"activeDefault\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/refund-policies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "refund-policies"
+              ]
+            }
+          }
+        },
+        {
+          "name": "8. Customer - Browse Shows",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shows",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shows"
+              ]
+            }
+          }
+        },
+        {
+          "name": "9. Customer - View Show Seats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shows/{{showId}}/seats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shows",
+                "{{showId}}",
+                "seats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "10. Customer - Hold Seats",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"showId\": {{showId}},\n  \"seatIds\": [{{seatId1}}, {{seatId2}}]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/holds",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "holds"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('held seats', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('holdId1', json.holdIds[0]);",
+                  "pm.collectionVariables.set('holdId2', json.holdIds[1]);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "11. Customer - Confirm Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"holdIds\": [{{holdId1}}, {{holdId2}}],\n  \"discountCode\": \"WELCOME10\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/bookings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "bookings"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('confirmed booking', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('bookingId', json.bookingId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "12. Customer - Booking History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/bookings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "bookings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "13. Customer - Cancel Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/bookings/{{bookingId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "bookings",
+                "{{bookingId}}",
+                "cancel"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog APIs",
+      "item": [
+        {
+          "name": "Browse Shows",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shows",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shows"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Browse Shows By City",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shows?cityId={{cityId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shows"
+              ],
+              "query": [
+                {
+                  "key": "cityId",
+                  "value": "{{cityId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "View Show Seats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shows/{{showId}}/seats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shows",
+                "{{showId}}",
+                "seats"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin APIs",
+      "item": [
+        {
+          "name": "Create City",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mumbai {{uniqueSuffix}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/cities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "cities"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Theater",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"PVR Screen 1\",\n  \"address\": \"Phoenix Mall\",\n  \"cityId\": {{cityId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/theaters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "theaters"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Seat Layout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theaterId\": {{theaterId}},\n  \"seats\": [\n    {\"rowLabel\": \"A\", \"seatNumber\": 1, \"seatType\": \"REGULAR\"},\n    {\"rowLabel\": \"A\", \"seatNumber\": 2, \"seatType\": \"REGULAR\"},\n    {\"rowLabel\": \"B\", \"seatNumber\": 1, \"seatType\": \"PREMIUM\"}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/seat-layouts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "seat-layouts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Movie",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Interstellar\",\n  \"durationMinutes\": 169,\n  \"language\": \"English\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/movies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "movies"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Show",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movieId\": {{movieId}},\n  \"theaterId\": {{theaterId}},\n  \"startsAt\": \"{{futureShowTime}}\",\n  \"basePrice\": 300.00,\n  \"premiumSurcharge\": 150.00,\n  \"weekendMultiplier\": 1.25,\n  \"holdMinutes\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/shows",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "shows"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Discount Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE15{{uniqueSuffix}}\",\n  \"percentage\": 15.00,\n  \"validUntil\": \"2027-12-31\",\n  \"active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/discounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "discounts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Refund Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Full refund until 2 hours before show\",\n  \"cutoffMinutesBeforeShow\": 120,\n  \"refundPercentage\": 100.00,\n  \"activeDefault\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/refund-policies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "refund-policies"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer APIs",
+      "item": [
+        {
+          "name": "Hold Seats",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"showId\": {{seedShowId}},\n  \"seatIds\": [{{seedSeatId1}}, {{seedSeatId2}}]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/holds",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "holds"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Confirm Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"holdIds\": [{{holdId1}}, {{holdId2}}],\n  \"discountCode\": \"WELCOME10\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/bookings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "bookings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Booking History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/bookings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "bookings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/bookings/{{bookingId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "bookings",
+                "{{bookingId}}",
+                "cancel"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Negative / Validation Examples",
+      "item": [
+        {
+          "name": "Customer Role Cannot Create City",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Forbidden City\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/cities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "cities"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Second Customer Cannot Hold Already Held Seats",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{secondCustomerUserId}}"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"showId\": {{showId}},\n  \"seatIds\": [{{seatId1}}, {{seatId2}}]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/holds",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "holds"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
