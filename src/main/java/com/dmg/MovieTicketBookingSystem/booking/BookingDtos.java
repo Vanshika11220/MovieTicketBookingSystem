@@ -4,7 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.dmg.MovieTicketBookingSystem.domain.BookingStatus;
+import com.dmg.MovieTicketBookingSystem.domain.enums.BookingStatus;
+import com.dmg.MovieTicketBookingSystem.domain.enums.PaymentMethod;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -19,7 +20,7 @@ public final class BookingDtos {
 	public record HoldSeatsResponse(List<Long> holdIds, LocalDateTime expiresAt) {
 	}
 
-	public record ConfirmBookingRequest(@NotEmpty List<Long> holdIds, String discountCode) {
+	public record ConfirmBookingRequest(@NotEmpty List<Long> holdIds, String discountCode, PaymentMethod paymentMethod) {
 	}
 
 	public record BookingResponse(Long bookingId, String bookingReference, BookingStatus status, BigDecimal amountPaid,

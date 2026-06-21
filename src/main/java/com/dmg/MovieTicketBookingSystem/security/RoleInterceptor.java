@@ -8,7 +8,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.dmg.MovieTicketBookingSystem.common.ApiException;
-import com.dmg.MovieTicketBookingSystem.domain.Role;
+import com.dmg.MovieTicketBookingSystem.domain.enums.Role;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

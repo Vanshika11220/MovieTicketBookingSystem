@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.dmg.MovieTicketBookingSystem.domain.SeatType;
+import com.dmg.MovieTicketBookingSystem.domain.enums.SeatType;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;

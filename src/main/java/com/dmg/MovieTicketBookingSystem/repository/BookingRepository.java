@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.dmg.MovieTicketBookingSystem.domain.Booking;
-import com.dmg.MovieTicketBookingSystem.domain.BookingStatus;
+import com.dmg.MovieTicketBookingSystem.domain.enums.BookingStatus;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 	List<Booking> findByCustomerIdOrderByConfirmedAtDesc(Long customerId);
@@ -30,5 +30,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 			  and bs.booking.status = :status
 			""")
 	boolean anyConfirmedSeat(@Param("showId") Long showId, @Param("seatIds") List<Long> seatIds,
+			@Param("status") BookingStatus status);
+
+	@Query("""
+			select bs.seat.id from BookingSeat bs
+			where bs.booking.movieShow.id = :showId
+			  and bs.seat.id in :seatIds
+			  and bs.booking.status = :status
+			""")
+	List<Long> findConfirmedSeatIds(@Param("showId") Long showId, @Param("seatIds") List<Long> seatIds,
 			@Param("status") BookingStatus status);
 }

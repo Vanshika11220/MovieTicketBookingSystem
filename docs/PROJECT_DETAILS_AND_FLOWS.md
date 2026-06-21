@@ -25,10 +25,10 @@ The implementation is intentionally scoped as a clean monolith because the assig
 - `booking`: Customer booking lifecycle: hold, confirm, cancel, history.
 - `domain`: JPA entities and enums.
 - `repository`: Spring Data JPA repositories.
-- `pricing`: Pricing Strategy abstraction and default pricing implementation.
+- `pricing`: Pricing Strategy abstractions for seat pricing and ordered pricing modifiers.
 - `refund`: Refund Strategy abstraction and policy-based implementation.
-- `payment`: Payment Gateway abstraction and in-memory implementation.
-- `notification`: Async booking confirmation/cancellation notification listeners.
+- `payment`: Payment Strategy abstraction with card, UPI, and wallet implementations.
+- `notification`: Observer Pattern for async booking confirmation/cancellation notifications.
 - `security`: Lightweight role enforcement using request headers.
 - `common`: Shared API exceptions and centralized error responses.
 - `config`: Web configuration and seeded demo data.
@@ -141,12 +141,12 @@ All customer APIs require `X-User-Id` and `X-User-Role: CUSTOMER`.
    - Holds belong to the same show.
    - Holds are not expired.
    - Seats are not already booked.
-8. System calculates price using `PricingPolicy`.
-9. System charges payment through `PaymentGateway`.
+8. System calculates price using `PricingPolicy`, seat pricing strategies, and pricing modifiers.
+9. System charges payment through the selected `PaymentStrategy`.
 10. System creates a confirmed `Booking`.
 11. System marks holds as confirmed.
-12. System publishes a booking confirmation event.
-13. Async listener logs/queues confirmation and reminder notifications.
+12. System asks `BookingNotificationSubject` to publish a booking confirmation notification.
+13. Async observer fan-out notifies email and SMS observers.
 
 ### Cancellation And Refund Flow
 
@@ -158,22 +158,34 @@ All customer APIs require `X-User-Id` and `X-User-Role: CUSTOMER`.
 6. If cancellation is allowed by policy, refund amount is calculated.
 7. Booking status becomes `CANCELLED`.
 8. Payment status becomes `REFUNDED`.
-9. System publishes a booking cancellation event.
-10. Async listener logs/queues cancellation notification.
+9. System asks `BookingNotificationSubject` to publish a booking cancellation notification.
+10. Async observer fan-out notifies email and SMS observers.
 
 ## 8. Pricing Understanding
 
-Pricing is implemented through the `PricingPolicy` Strategy interface.
+Pricing is implemented through explicit Strategy interfaces.
 
-Current default pricing:
+Current pricing strategies:
 
-- Start with show `basePrice`.
-- Add `premiumSurcharge` for `PREMIUM` seats.
-- Apply `weekendMultiplier` for Saturday and Sunday shows.
-- Apply active non-expired discount code percentage.
+- `RegularSeatPricingStrategy`: returns show `basePrice`.
+- `PremiumSeatPricingStrategy`: returns show `basePrice + premiumSurcharge`.
+- `WeekendPricingModifier`: applies `weekendMultiplier` for Saturday and Sunday shows.
+- `DiscountPricingModifier`: applies active non-expired discount code percentage.
 - Final amount is rounded to 2 decimals.
 
 This keeps the pricing logic replaceable without changing the booking orchestration code.
+
+## 9A. Payment Understanding
+
+Payments are implemented through the `PaymentStrategy` interface.
+
+Current payment strategies:
+
+- `CardPaymentStrategy`
+- `UpiPaymentStrategy`
+- `WalletPaymentStrategy`
+
+`PaymentProcessor` selects the correct strategy using the `paymentMethod` supplied in the booking confirmation request. If the request does not include `paymentMethod`, the system defaults to `CARD`.
 
 ## 9. Refund Understanding
 
@@ -191,7 +203,16 @@ amountPaid * refundPercentage / 100
 
 - Otherwise refund is zero.
 
-## 10. Concurrency Handling
+## 10. Notification Understanding
+
+Notifications are implemented with the Observer Pattern.
+
+- `BookingNotificationSubject` is the subject.
+- `NotificationObserver` is the observer interface.
+- `EmailNotificationObserver` and `SmsNotificationObserver` are concrete observers.
+- The subject notifies observers asynchronously so booking confirmation/cancellation does not block on notification delivery.
+
+## 11. Concurrency Handling
 
 The most important race condition is two users trying to book the same seat at the same time.
 
@@ -205,7 +226,7 @@ The system handles this by:
 
 This serializes competing booking attempts for the same seats and prevents double allocation.
 
-## 11. Seat Hold Expiry
+## 12. Seat Hold Expiry
 
 Seat holds are time-bound.
 
@@ -216,7 +237,7 @@ Expiry is handled in two ways:
 
 This means expired holds do not block new customers even if the scheduled task has not run yet.
 
-## 12. Error Handling And Validation
+## 13. Error Handling And Validation
 
 Validation is implemented using Bean Validation annotations on request DTOs.
 
@@ -235,7 +256,7 @@ Business errors use `ApiException`, for example:
 - `403 FORBIDDEN` for wrong role or wrong customer ownership.
 - `409 CONFLICT` for held/booked seats, expired holds, or already-cancelled bookings.
 
-## 13. Seeded Demo Data
+## 14. Seeded Demo Data
 
 On application startup, the app seeds:
 
@@ -251,7 +272,7 @@ On application startup, the app seeds:
 
 This makes the APIs usable immediately after `./mvnw spring-boot:run`.
 
-## 14. Postman Collection
+## 15. Postman Collection
 
 The collection is available at:
 
@@ -269,7 +290,7 @@ It contains:
 
 Run the whole-flow folder in order after starting the app.
 
-## 15. Running The Project
+## 16. Running The Project
 
 ```bash
 ./mvnw spring-boot:run
@@ -293,7 +314,7 @@ JDBC URL:
 jdbc:h2:mem:movietickets
 ```
 
-## 16. Running Tests
+## 17. Running Tests
 
 ```bash
 ./mvnw test
@@ -306,27 +327,36 @@ Current test coverage includes:
 - Double-hold conflict for another customer.
 - Role-based denial for customer trying to call admin API.
 
-## 17. Design Patterns Used
+## 18. Design Patterns Used
 
-- Strategy Pattern: `PricingPolicy`, `RefundCalculator`.
-- Gateway Pattern: `PaymentGateway`.
-- Event Listener Pattern: booking confirmation and cancellation notifications.
+- Strategy Pattern: `SeatPricingStrategy`, `PricingModifier`, `PaymentStrategy`, `RefundCalculator`.
+- Observer Pattern: `BookingNotificationSubject`, `NotificationObserver`.
 - Repository Pattern: Spring Data repositories.
 - DTO Pattern: request and response contracts separate from entities.
 - Service Layer Pattern: transaction and business rules are kept out of controllers.
 
-## 18. Important Assumptions
+## 19. Important Assumptions
 
 - UI/frontend is out of scope.
 - OAuth, SSO, MFA, and production auth are out of scope.
-- Payment gateway is simulated and always succeeds.
+- Payment strategies are simulated and always succeed.
 - The active default refund policy applies globally.
 - Discount codes are percentage based.
 - Seat availability is calculated from confirmed bookings and active non-expired holds.
-- Notifications are represented by async event listeners and logs.
+- Notifications are represented by async observers and logs.
 - H2 is in-memory, so data resets when the app restarts.
 
-## 19. Suggested Demo Script
+## 20. Reference Used
+
+The pattern alignment was influenced by the referenced `awesome-low-level-design` movie ticket booking system, especially its explicit mention of Observer Pattern for updates and Strategy Pattern for pricing.
+
+Reference:
+
+```text
+https://github.com/ashishps1/awesome-low-level-design/tree/main/solutions/java/src/movieticketbookingsystem
+```
+
+## 21. Suggested Demo Script
 
 1. Start the app.
 2. Open Postman and import the collection.

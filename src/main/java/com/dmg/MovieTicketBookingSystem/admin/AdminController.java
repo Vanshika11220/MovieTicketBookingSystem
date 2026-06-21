@@ -17,7 +17,7 @@ import com.dmg.MovieTicketBookingSystem.admin.AdminDtos.CreateSeatLayoutRequest;
 import com.dmg.MovieTicketBookingSystem.admin.AdminDtos.CreateShowRequest;
 import com.dmg.MovieTicketBookingSystem.admin.AdminDtos.CreateTheaterRequest;
 import com.dmg.MovieTicketBookingSystem.admin.AdminDtos.IdResponse;
-import com.dmg.MovieTicketBookingSystem.domain.Role;
+import com.dmg.MovieTicketBookingSystem.domain.enums.Role;
 import com.dmg.MovieTicketBookingSystem.security.RoleRequired;
 
 import jakarta.validation.Valid;

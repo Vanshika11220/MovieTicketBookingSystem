@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.dmg.MovieTicketBookingSystem.domain.HoldStatus;
+import com.dmg.MovieTicketBookingSystem.domain.enums.HoldStatus;
 import com.dmg.MovieTicketBookingSystem.domain.SeatHold;
 
 public interface SeatHoldRepository extends JpaRepository<SeatHold, Long> {

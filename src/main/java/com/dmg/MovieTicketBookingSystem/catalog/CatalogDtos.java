@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.dmg.MovieTicketBookingSystem.domain.SeatType;
+import com.dmg.MovieTicketBookingSystem.domain.enums.SeatType;
 
 public final class CatalogDtos {
 	private CatalogDtos() {

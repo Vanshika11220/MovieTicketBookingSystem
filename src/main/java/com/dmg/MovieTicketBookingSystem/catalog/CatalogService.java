@@ -2,6 +2,8 @@ package com.dmg.MovieTicketBookingSystem.catalog;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,8 +12,8 @@ import com.dmg.MovieTicketBookingSystem.catalog.CatalogDtos.SeatResponse;
 import com.dmg.MovieTicketBookingSystem.catalog.CatalogDtos.ShowResponse;
 import com.dmg.MovieTicketBookingSystem.catalog.CatalogDtos.ShowSeatsResponse;
 import com.dmg.MovieTicketBookingSystem.common.NotFoundException;
-import com.dmg.MovieTicketBookingSystem.domain.BookingStatus;
-import com.dmg.MovieTicketBookingSystem.domain.HoldStatus;
+import com.dmg.MovieTicketBookingSystem.domain.enums.BookingStatus;
+import com.dmg.MovieTicketBookingSystem.domain.enums.HoldStatus;
 import com.dmg.MovieTicketBookingSystem.domain.MovieShow;
 import com.dmg.MovieTicketBookingSystem.repository.BookingRepository;
 import com.dmg.MovieTicketBookingSystem.repository.MovieShowRepository;
@@ -44,15 +46,15 @@ public class CatalogService {
 	@Transactional(readOnly = true)
 	public ShowSeatsResponse seatsForShow(Long showId) {
 		MovieShow show = movieShowRepository.findById(showId).orElseThrow(() -> new NotFoundException("Show", showId));
-		List<Long> allSeatIds = seatRepository.findByTheaterIdOrderByRowLabelAscSeatNumberAsc(show.getTheater().getId())
-				.stream().map(seat -> seat.getId()).toList();
-		List<Long> held = seatHoldRepository.findActiveHolds(showId, allSeatIds, HoldStatus.ACTIVE, LocalDateTime.now())
-				.stream().map(hold -> hold.getSeat().getId()).toList();
-		return new ShowSeatsResponse(showId, seatRepository.findByTheaterIdOrderByRowLabelAscSeatNumberAsc(show.getTheater().getId())
-				.stream()
+		var seats = seatRepository.findByTheaterIdOrderByRowLabelAscSeatNumberAsc(show.getTheater().getId());
+		List<Long> allSeatIds = seats.stream().map(seat -> seat.getId()).toList();
+		Set<Long> held = seatHoldRepository.findActiveHolds(showId, allSeatIds, HoldStatus.ACTIVE, LocalDateTime.now())
+				.stream().map(hold -> hold.getSeat().getId()).collect(Collectors.toSet());
+		Set<Long> booked = Set.copyOf(
+				bookingRepository.findConfirmedSeatIds(showId, allSeatIds, BookingStatus.CONFIRMED));
+		return new ShowSeatsResponse(showId, seats.stream()
 				.map(seat -> new SeatResponse(seat.getId(), seat.label(), seat.getSeatType(),
-						!held.contains(seat.getId()) && !bookingRepository.anyConfirmedSeat(showId, List.of(seat.getId()),
-								BookingStatus.CONFIRMED)))
+						!held.contains(seat.getId()) && !booked.contains(seat.getId())))
 				.toList());
 	}
 }

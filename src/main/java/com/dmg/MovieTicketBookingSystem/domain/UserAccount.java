@@ -8,6 +8,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
+import com.dmg.MovieTicketBookingSystem.domain.enums.Role;
+
 @Entity
 public class UserAccount {
 	@Id

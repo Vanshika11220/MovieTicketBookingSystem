@@ -513,7 +513,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"holdIds\": [{{holdId1}}, {{holdId2}}],\n  \"discountCode\": \"WELCOME10\"\n}"
+              "raw": "{\n  \"holdIds\": [{{holdId1}}, {{holdId2}}],\n  \"discountCode\": \"WELCOME10\",\n  \"paymentMethod\": \"CARD\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/customer/bookings",
@@ -971,7 +971,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"holdIds\": [{{holdId1}}, {{holdId2}}],\n  \"discountCode\": \"WELCOME10\"\n}"
+              "raw": "{\n  \"holdIds\": [{{holdId1}}, {{holdId2}}],\n  \"discountCode\": \"WELCOME10\",\n  \"paymentMethod\": \"UPI\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/customer/bookings",

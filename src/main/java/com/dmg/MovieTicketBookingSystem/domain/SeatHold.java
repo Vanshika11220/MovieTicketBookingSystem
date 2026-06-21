@@ -12,6 +12,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 
+import com.dmg.MovieTicketBookingSystem.domain.enums.HoldStatus;
+
 @Entity
 public class SeatHold {
 	@Id

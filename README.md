@@ -18,10 +18,10 @@ Spring Boot implementation of the take-home assignment in `Movie Ticket Booking 
 - Basic role-based access control using `X-User-Id` and `X-User-Role` headers.
 - Seat-level concurrency control using pessimistic row locks on selected seats.
 - Time-bound seat holds with scheduled expiry and expiry checks during booking.
-- Pricing Strategy for regular, premium, weekend multiplier, and discount-code pricing.
+- Pricing Strategy for regular seats, premium seats, weekend pricing, and discount-code pricing.
 - Refund Strategy based on configurable refund policies.
-- Payment Gateway abstraction with an in-memory implementation.
-- Async notification event listener so booking confirmation/cancellation does not block the customer flow.
+- Payment Strategy implementations for `CARD`, `UPI`, and `WALLET`.
+- Observer Pattern for async email/SMS booking notifications.
 - Centralized validation and error responses.
 
 ## Assumptions
@@ -29,7 +29,7 @@ Spring Boot implementation of the take-home assignment in `Movie Ticket Booking 
 - Authentication is intentionally simple because advanced auth is out of scope. Requests identify a seeded user by headers.
 - A seat can be held by only one active hold for a show. Expired holds are ignored and are cleaned up periodically.
 - Confirmation must use active holds owned by the same customer and belonging to one show.
-- Payment always succeeds in the in-memory gateway.
+- Payment always succeeds via the selected {@code PaymentStrategy} implementation.
 - The active default refund policy applies to all shows.
 - Weekend pricing is applied on Saturday and Sunday.
 
@@ -82,7 +82,7 @@ curl -X POST http://localhost:8080/api/customer/bookings \
   -H 'Content-Type: application/json' \
   -H 'X-User-Id: 2' \
   -H 'X-User-Role: CUSTOMER' \
-  -d '{"holdIds":[1,2],"discountCode":"WELCOME10"}'
+  -d '{"holdIds":[1,2],"discountCode":"WELCOME10","paymentMethod":"CARD"}'
 ```
 
 Cancel booking:
@@ -95,11 +95,31 @@ curl -X POST http://localhost:8080/api/customer/bookings/1/cancel \
 
 ## Design Notes
 
-- `BookingService` owns the transactional booking flow and locks selected seats before checking holds/bookings.
-- `PricingPolicy` is a Strategy interface; `DefaultPricingPolicy` implements current pricing rules.
-- `RefundCalculator` is a Strategy interface; `PolicyBasedRefundCalculator` reads the configured default policy.
-- `PaymentGateway` isolates payment integration from booking orchestration.
-- Domain events are published after confirmation/cancellation and handled asynchronously by `NotificationListener`.
+### Package layout
+
+- `domain/` — JPA entities
+- `domain/enums/` — shared enums (`BookingStatus`, `HoldStatus`, `PaymentMethod`, `PaymentStatus`, `Role`, `SeatType`, `NotificationType`)
+- `booking/` — customer booking flow split into focused services
+- `pricing/` — Strategy pattern for seat pricing and modifiers
+- `payment/` — Strategy pattern for payment methods
+- `refund/` — Strategy pattern for refund calculation
+- `notification/` — Observer pattern for async email/SMS notifications
+
+### Design patterns
+
+- **Strategy** — `SeatPricingStrategy`, `PricingModifier`, `PaymentStrategy`, `RefundCalculator`
+- **Observer** — `BookingNotificationSubject` notifies `NotificationObserver` implementations
+- **Facade** — `BookingService` delegates to specialized booking services
+- **Repository** — Spring Data JPA for persistence
+
+### Booking services
+
+- `SeatAvailabilityService` — pessimistic seat locking and availability checks
+- `SeatHoldService` — time-bound holds and scheduled expiry
+- `BookingConfirmationService` — pricing, payment, and confirmation
+- `BookingCancellationService` — refund calculation and cancellation
+- `BookingQueryService` — booking history
+- `BookingService` — thin facade used by the controller
 
 ## Tests
 

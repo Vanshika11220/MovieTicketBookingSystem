@@ -1,4 +1,4 @@
-package com.dmg.MovieTicketBookingSystem.domain;
+package com.dmg.MovieTicketBookingSystem.domain.enums;
 
 public enum HoldStatus {
 	ACTIVE,

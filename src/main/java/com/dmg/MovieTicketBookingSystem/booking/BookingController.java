@@ -14,7 +14,7 @@ import com.dmg.MovieTicketBookingSystem.booking.BookingDtos.CancelBookingRespons
 import com.dmg.MovieTicketBookingSystem.booking.BookingDtos.ConfirmBookingRequest;
 import com.dmg.MovieTicketBookingSystem.booking.BookingDtos.HoldSeatsRequest;
 import com.dmg.MovieTicketBookingSystem.booking.BookingDtos.HoldSeatsResponse;
-import com.dmg.MovieTicketBookingSystem.domain.Role;
+import com.dmg.MovieTicketBookingSystem.domain.enums.Role;
 import com.dmg.MovieTicketBookingSystem.security.RoleRequired;
 
 import jakarta.validation.Valid;

@@ -12,6 +12,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+import com.dmg.MovieTicketBookingSystem.domain.enums.SeatType;
+
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"theater_id", "rowLabel", "seatNumber"}))
 public class Seat {

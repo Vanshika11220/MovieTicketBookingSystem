@@ -19,6 +19,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
+import com.dmg.MovieTicketBookingSystem.domain.enums.BookingStatus;
+
 @Entity
 public class Booking {
 	@Id
